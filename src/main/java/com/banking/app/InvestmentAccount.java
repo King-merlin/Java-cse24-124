@@ -1,4 +1,4 @@
-package com.mycompany.app;
+package com.banking.model;
 
 public class InvestmentAccount extends Account implements InterestBearing {
     private static final double INTEREST_RATE = 0.05; // 5% monthly

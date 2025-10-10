@@ -1,4 +1,4 @@
-package com.mycompany.app;
+package com.banking.model;
 
 public class ChequeAccount extends Account {
     private String employer;
@@ -22,15 +22,18 @@ public class ChequeAccount extends Account {
     }
 
     // Getters and Setters
-    public String getEmployer() { 
+    public String getEmployer() {
         return employer;
     }
+
     public void setEmployer(String employer) {
         this.employer = employer;
     }
-    public String getEmployerAddress() { 
-        return employerAddress; 
+
+    public String getEmployerAddress() {
+        return employerAddress;
     }
+
     public void setEmployerAddress(String employerAddress) {
         this.employerAddress = employerAddress;
     }

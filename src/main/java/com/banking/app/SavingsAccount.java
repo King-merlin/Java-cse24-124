@@ -1,4 +1,4 @@
-package com.mycompany.app;
+package com.banking.model;
 
 public class SavingsAccount extends Account implements InterestBearing {
     private static final double INTEREST_RATE = 0.0005; // 0.05% monthly
@@ -9,7 +9,7 @@ public class SavingsAccount extends Account implements InterestBearing {
 
     @Override
     public boolean withdraw(double amount) {
-            //no withdrawals
+        // No withdrawals allowed for savings
         return false;
     }
 
