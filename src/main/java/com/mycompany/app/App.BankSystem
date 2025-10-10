@@ -274,16 +274,16 @@ import java.util.Scanner;
         }
     }
 
-//========================= Bank
+//========================= Account
 
 
 
-    public class Bank {
+    public class Account {
         private String name;
         private List<Customer> customers;
         private List<Account> accounts;
 
-        public Bank(String name) {
+        public Account(String name) {
             this.name = name;
             this.customers = new ArrayList<>();
             this.accounts = new ArrayList<>();
