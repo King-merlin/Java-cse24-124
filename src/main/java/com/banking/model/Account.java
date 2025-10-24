@@ -1,22 +1,34 @@
 package com.banking.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public abstract class Account {
     protected String accountNumber;
     protected double balance;
     protected String branch;
-    protected Date openDate;
+    protected LocalDateTime openDate;
     protected List<Transaction> transactions;
 
     public Account(String accountNumber, String branch, double initialDeposit) {
+        if (accountNumber == null || accountNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("Account number cannot be empty");
+        }
+        if (branch == null || branch.trim().isEmpty()) {
+            throw new IllegalArgumentException("Branch cannot be empty");
+        }
+        if (initialDeposit < 0) {
+            throw new IllegalArgumentException("Initial deposit cannot be negative");
+        }
+
         this.accountNumber = accountNumber;
         this.branch = branch;
         this.balance = initialDeposit;
-        this.openDate = new Date();
+        this.openDate = LocalDateTime.now();
         this.transactions = new ArrayList<>();
+
         if (initialDeposit > 0) {
             transactions.add(new Transaction(initialDeposit, "Initial Deposit"));
         }
@@ -37,13 +49,8 @@ public abstract class Account {
         return balance;
     }
 
-    // Getters (removed dangerous setBalance)
     public String getAccountNumber() {
         return accountNumber;
-    }
-
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
     }
 
     public String getBranch() {
@@ -51,18 +58,20 @@ public abstract class Account {
     }
 
     public void setBranch(String branch) {
-        this.branch = branch;
+        if (branch != null && !branch.trim().isEmpty()) {
+            this.branch = branch;
+        }
     }
 
-    public Date getOpenDate() {
+    public LocalDateTime getOpenDate() {
         return openDate;
     }
 
-    public void setOpenDate(Date openDate) {
-        this.openDate = openDate;
+    public List<Transaction> getTransactions() {
+        return Collections.unmodifiableList(transactions);
     }
 
-    public List<Transaction> getTransactions() {
-        return transactions;
+    public String getAccountType() {
+        return this.getClass().getSimpleName().replace("Account", "");
     }
 }

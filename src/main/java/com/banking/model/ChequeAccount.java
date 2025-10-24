@@ -7,6 +7,14 @@ public class ChequeAccount extends Account {
     public ChequeAccount(String accountNumber, String branch, double initialDeposit,
                          String employer, String employerAddress) {
         super(accountNumber, branch, initialDeposit);
+
+        if (employer == null || employer.trim().isEmpty()) {
+            throw new IllegalArgumentException("Employer information is required");
+        }
+        if (employerAddress == null || employerAddress.trim().isEmpty()) {
+            throw new IllegalArgumentException("Employer address is required");
+        }
+
         this.employer = employer;
         this.employerAddress = employerAddress;
     }
@@ -21,13 +29,14 @@ public class ChequeAccount extends Account {
         return false;
     }
 
-    // Getters and Setters
     public String getEmployer() {
         return employer;
     }
 
     public void setEmployer(String employer) {
-        this.employer = employer;
+        if (employer != null && !employer.trim().isEmpty()) {
+            this.employer = employer;
+        }
     }
 
     public String getEmployerAddress() {
@@ -35,6 +44,8 @@ public class ChequeAccount extends Account {
     }
 
     public void setEmployerAddress(String employerAddress) {
-        this.employerAddress = employerAddress;
+        if (employerAddress != null && !employerAddress.trim().isEmpty()) {
+            this.employerAddress = employerAddress;
+        }
     }
 }

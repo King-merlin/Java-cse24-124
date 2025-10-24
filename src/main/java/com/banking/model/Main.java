@@ -8,7 +8,11 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        new LoginController(primaryStage);
+        try {
+            new LoginController(primaryStage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {

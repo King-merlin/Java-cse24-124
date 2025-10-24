@@ -1,4 +1,4 @@
-package com.banking.app;
+package com.banking.model;
 
 import org.junit.Test;
 
