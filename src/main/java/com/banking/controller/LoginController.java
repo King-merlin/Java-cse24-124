@@ -15,8 +15,8 @@ public class LoginController {
         this.stage = stage;
         this.view = new LoginView(stage);
 
-        initializeHandlers();
-        view.show();
+        view.show();  // Show the view FIRST to create the controls
+        initializeHandlers();  // Then initialize handlers AFTER controls exist
         stage.show();
     }
 
