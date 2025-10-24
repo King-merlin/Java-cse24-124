@@ -20,14 +20,20 @@ public class CustomerController {
         this.mainController = mainController;
         this.customerList = FXCollections.observableArrayList();
 
-        initializeHandlers();
         view.show();
+        initializeHandlers();
     }
 
     private void initializeHandlers() {
         view.getBtnSave().setOnAction(e -> handleSaveCustomer());
         view.getBtnClear().setOnAction(e -> view.clearForm());
         view.getBtnBack().setOnAction(e -> mainController.returnToMenu());
+    }
+
+    // Add show method to display the view again
+    public void show() {
+        view.show();
+        initializeHandlers();
     }
 
     private void handleSaveCustomer() {

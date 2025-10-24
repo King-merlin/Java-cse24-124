@@ -19,9 +19,9 @@ public class AccountController {
         this.mainController = mainController;
         this.customerMap = new HashMap<>();
 
+        view.show();
         initializeHandlers();
         loadCustomers();
-        view.show();
     }
 
     private void initializeHandlers() {
@@ -29,6 +29,13 @@ public class AccountController {
         view.getBtnOpenAccount().setOnAction(e -> handleOpenAccount());
         view.getBtnClear().setOnAction(e -> view.clearForm());
         view.getBtnBack().setOnAction(e -> mainController.returnToMenu());
+    }
+
+    // Add show method to display the view again
+    public void show() {
+        view.show();
+        initializeHandlers();
+        loadCustomers();
     }
 
     private void handleAccountTypeChange() {
