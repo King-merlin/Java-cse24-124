@@ -1,0 +1,2 @@
+CUSTOMER|customer|karabo Leetile|plot123|****
+ACCOUNT|customer|SavingsAccount|1000.00|B89991298
