@@ -14,7 +14,7 @@ public class MainApp extends Application {
         primaryStage = stage;
         primaryStage.setTitle("Banking System");
 
-        loadScreen("/banking/WelcomeScreen.fxml");
+        loadScreen("/banking/view/WelcomeScreen.fxml");
 
         primaryStage.show();
     }

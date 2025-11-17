@@ -37,19 +37,19 @@
                         onAction="#handleCustomerLogin"
                         maxWidth="Infinity"
                         prefHeight="45"
-                        style="-fx-font-size: 14px; -fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                        style="-fx-font-size: 14px; -fx-background-color: #3498db; -fx-text-fill: black; -fx-background-radius: 5; -fx-cursor: hand;"/>
 
                 <Button text="Admin Login"
                         onAction="#handleAdminLogin"
                         maxWidth="Infinity"
                         prefHeight="45"
-                        style="-fx-font-size: 14px; -fx-background-color: #2ecc71; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                        style="-fx-font-size: 14px; -fx-background-color: #2ecc71; -fx-text-fill: black; -fx-background-radius: 5; -fx-cursor: hand;"/>
 
                 <Button text="Open New Account"
                         onAction="#handleOpenAccount"
                         maxWidth="Infinity"
                         prefHeight="45"
-                        style="-fx-font-size: 14px; -fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                        style="-fx-font-size: 14px; -fx-background-color: #e67e22; -fx-text-fill: black; -fx-background-radius: 5; -fx-cursor: hand;"/>
             </VBox>
         </VBox>
     </center>

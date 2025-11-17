@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.io.*;
 import java.util.*;
 
-
 public class Bank {
     private String name;
     private Map<String, Customer> customers = new HashMap<>();
@@ -100,55 +99,117 @@ public class Bank {
             for (Account a : c.getAccounts()) {
                 if (a instanceof InterestBearing) {
                     double interest = ((InterestBearing)a).calculateMonthlyInterest();
-                    System.out.printf("Applied interest %.2f to %s (new balance: %.2f)%n", interest, a.getAccountNumber(), a.getBalance());
+                    System.out.printf("Applied interest %.2f to %s (new balance: %.2f)%n",
+                            interest, a.getAccountNumber(), a.getBalance());
                 }
             }
         }
     }
-    // add at the bottom of Bank.java
 
+    /**
+     * Save bank data to file
+     * Format: CUSTOMER|customerId|firstName|lastName|address|password
+     *         ACCOUNT|customerId|accountType|balance|accountNumber|branch|openDate
+     */
     public void saveToFile(String filename) {
         try (PrintWriter out = new PrintWriter(new FileWriter(filename))) {
             for (Customer c : customers.values()) {
-                out.printf("CUSTOMER|%s|%s|%s|%s%n", c.getCustomerId(),
-                        c.getName(), c.getAddress(), "****");
+                // Save customer with password
+                out.printf("CUSTOMER|%s|%s|%s|%s|%s%n",
+                        c.getCustomerId(),
+                        c.getName().split(" ")[0], // First name
+                        c.getName().split(" ").length > 1 ? c.getName().split(" ")[1] : "", // Last name
+                        c.getAddress(),
+                        c.getPassword()); // Save actual password
+
+                // Save each account
                 for (Account a : c.getAccounts()) {
-                    out.printf("ACCOUNT|%s|%s|%.2f|%s%n",
+                    out.printf("ACCOUNT|%s|%s|%.2f|%s|%s|%s%n",
                             c.getCustomerId(),
                             a.getClass().getSimpleName(),
                             a.getBalance(),
-                            a.getAccountNumber());
+                            a.getAccountNumber(),
+                            a.getBranch(),
+                            a.getOpenDate());
                 }
             }
+            System.out.println("Data saved successfully to " + filename);
         } catch (IOException e) {
             System.out.println("Error saving data: " + e.getMessage());
         }
     }
 
+    /**
+     * Load bank data from file
+     * Format: CUSTOMER|customerId|firstName|lastName|address|password
+     *         ACCOUNT|customerId|accountType|balance|accountNumber|branch|openDate
+     */
     public static Bank loadFromFile(String filename) {
         Bank bank = new Bank("StudentBank");
         File f = new File(filename);
-        if (!f.exists()) return bank;
+
+        if (!f.exists()) {
+            System.out.println("Data file not found. Starting with empty bank.");
+            return bank;
+        }
 
         try (BufferedReader br = new BufferedReader(new FileReader(f))) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] p = line.split("\\|");
-                if (p[0].equals("CUSTOMER")) {
-                    String id = p[1];
-                    String[] name = p[2].split(" ");
-                    bank.createCustomer(id, name[0], name.length > 1 ? name[1] : "", p[3], "1234");
-                } else if (p[0].equals("ACCOUNT")) {
-                    String custId = p[1];
-                    String type = p[2].replace("Account", "");
-                    double bal = Double.parseDouble(p[3]);
-                    bank.openAccount(custId, type, bal);
+                String[] parts = line.split("\\|");
+
+                if (parts[0].equals("CUSTOMER")) {
+                    // CUSTOMER|customerId|firstName|lastName|address|password
+                    String customerId = parts[1];
+                    String firstName = parts[2];
+                    String lastName = parts.length > 3 ? parts[3] : "";
+                    String address = parts.length > 4 ? parts[4] : "Gaborone";
+                    String password = parts.length > 5 ? parts[5] : "1234";
+
+                    bank.createCustomer(customerId, firstName, lastName, address, password);
+                    System.out.println("Loaded customer: " + customerId + " with password: " + password);
+
+                } else if (parts[0].equals("ACCOUNT")) {
+                    // ACCOUNT|customerId|accountType|balance|accountNumber|branch|openDate
+                    String customerId = parts[1];
+                    String accountType = parts[2].replace("Account", ""); // Remove "Account" suffix
+                    double balance = Double.parseDouble(parts[3]);
+                    String accountNumber = parts.length > 4 ? parts[4] : null;
+                    String branch = parts.length > 5 ? parts[5] : "Main";
+                    String openDate = parts.length > 6 ? parts[6] : LocalDate.now().toString();
+
+                    Customer customer = bank.getCustomer(customerId);
+                    if (customer != null) {
+                        // Create account with saved account number
+                        Account account = null;
+                        switch (accountType.toUpperCase()) {
+                            case "SAVINGS":
+                                account = new SavingsAccount(accountNumber, balance, branch, openDate);
+                                break;
+                            case "INVESTMENT":
+                                account = new InvestmentAccount(accountNumber, balance, branch, openDate);
+                                break;
+                            case "CHEQUE":
+                                account = new ChequeAccount(accountNumber, balance, branch, openDate, "Unknown", "Unknown");
+                                break;
+                        }
+
+                        if (account != null) {
+                            customer.addAccount(account);
+                            bank.accountNumbers.add(accountNumber);
+                            System.out.println("Loaded account: " + accountNumber + " for customer: " + customerId);
+                        }
+                    }
                 }
             }
+            System.out.println("Data loaded successfully from " + filename);
         } catch (IOException e) {
             System.out.println("Error loading data: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error parsing data: " + e.getMessage());
+            e.printStackTrace();
         }
+
         return bank;
     }
-
 }

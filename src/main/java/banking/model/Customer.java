@@ -8,7 +8,7 @@ public class Customer {
     private String firstName;
     private String lastName;
     private String address;
-    private String password; // simple demo password
+    private String password;
     private List<Account> accounts = new ArrayList<>();
 
     public Customer(String customerId, String firstName, String lastName, String address, String password) {
@@ -19,17 +19,33 @@ public class Customer {
         this.password = password;
     }
 
-    public String getCustomerId() { return customerId; }
-    public String getName() { return firstName + " " + lastName; }
-    public String getAddress() { return address; }
+    public String getCustomerId() {
+        return customerId;
+    }
 
-    public boolean checkPassword(String pw) { return password.equals(pw); }
+    public String getName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public boolean checkPassword(String pw) {
+        return password.equals(pw);
+    }
 
     public void addAccount(Account a) {
         accounts.add(a);
     }
 
-    public List<Account> getAccounts() { return accounts; }
+    public List<Account> getAccounts() {
+        return accounts;
+    }
 
     public boolean removeAccount(String accountNumber) {
         return accounts.removeIf(a -> a.getAccountNumber().equals(accountNumber));
