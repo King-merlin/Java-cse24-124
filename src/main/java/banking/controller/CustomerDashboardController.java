@@ -79,6 +79,6 @@ public class CustomerDashboardController {
     @FXML
     public void logout() {
         SessionManager.logout();
-        MainApp.loadScreen("/banking/view/WelcomeScreen.fxml");
+        MainApp.loadScreen("/banking/WelcomeScreen.fxml");
     }
 }
