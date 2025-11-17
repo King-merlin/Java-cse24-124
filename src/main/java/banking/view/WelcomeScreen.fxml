@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="banking.controller.WelcomeController"
+            prefWidth="500"
+            prefHeight="400"
+            style="-fx-background-color: #ecf0f1;">
+
+    <center>
+        <VBox spacing="25" alignment="CENTER">
+            <padding>
+                <Insets top="30" right="50" bottom="30" left="50"/>
+            </padding>
+
+            <VBox alignment="CENTER" spacing="10">
+                <Label text="Banking System" style="-fx-text-fill: #2c3e50;">
+                    <font>
+                        <Font name="System Bold" size="28"/>
+                    </font>
+                </Label>
+
+                <Label text="Welcome! Please select an option:" style="-fx-text-fill: #34495e;">
+                    <font>
+                        <Font size="14"/>
+                    </font>
+                </Label>
+            </VBox>
+
+            <VBox spacing="15" alignment="CENTER" prefWidth="300">
+                <Button text="Customer Login"
+                        onAction="#handleCustomerLogin"
+                        maxWidth="Infinity"
+                        prefHeight="45"
+                        style="-fx-font-size: 14px; -fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;"/>
+
+                <Button text="Admin Login"
+                        onAction="#handleAdminLogin"
+                        maxWidth="Infinity"
+                        prefHeight="45"
+                        style="-fx-font-size: 14px; -fx-background-color: #2ecc71; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;"/>
+
+                <Button text="Open New Account"
+                        onAction="#handleOpenAccount"
+                        maxWidth="Infinity"
+                        prefHeight="45"
+                        style="-fx-font-size: 14px; -fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;"/>
+            </VBox>
+        </VBox>
+    </center>
+
+</BorderPane>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="banking.controller.StaffController"
+      alignment="CENTER" spacing="10" style="-fx-padding: 20px;">
+    <Label text="Staff Dashboard" style="-fx-font-size: 20px;" />
+    <TextArea fx:id="txtArea" prefHeight="300" wrapText="true" editable="false"/>
+    <HBox spacing="10">
+        <Button text="List Customers" onAction="#listCustomers"/>
+        <Button text="Calculate Interest" onAction="#calculateInterest"/>
+        <Button text="Save & Exit" onAction="#saveAndExit"/>
+    </HBox>
+</VBox>
