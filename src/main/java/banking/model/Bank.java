@@ -25,7 +25,6 @@ public class Bank {
         return customers.get(id);
     }
 
-    // Overloaded openAccount methods
     public Account openAccount(String customerId, String accountType, double initialDeposit) {
         return openAccount(customerId, accountType, initialDeposit, null, null);
     }
@@ -72,7 +71,6 @@ public class Bank {
     }
 
     private String generateAccountNumber() {
-        // simple generator: B + 8 digits
         String num;
         do {
             num = "B" + (10000000 + random.nextInt(90000000));
@@ -109,28 +107,39 @@ public class Bank {
     /**
      * Save bank data to file
      * Format: CUSTOMER|customerId|firstName|lastName|address|password
-     *         ACCOUNT|customerId|accountType|balance|accountNumber|branch|openDate
+     *         ACCOUNT|customerId|accountType|balance|accountNumber|branch|openDate|employer|employerAddress
      */
     public void saveToFile(String filename) {
         try (PrintWriter out = new PrintWriter(new FileWriter(filename))) {
             for (Customer c : customers.values()) {
-                // Save customer with password
                 out.printf("CUSTOMER|%s|%s|%s|%s|%s%n",
                         c.getCustomerId(),
-                        c.getName().split(" ")[0], // First name
-                        c.getName().split(" ").length > 1 ? c.getName().split(" ")[1] : "", // Last name
+                        c.getName().split(" ")[0],
+                        c.getName().split(" ").length > 1 ? c.getName().split(" ")[1] : "",
                         c.getAddress(),
-                        c.getPassword()); // Save actual password
+                        c.getPassword());
 
-                // Save each account
                 for (Account a : c.getAccounts()) {
-                    out.printf("ACCOUNT|%s|%s|%.2f|%s|%s|%s%n",
-                            c.getCustomerId(),
-                            a.getClass().getSimpleName(),
-                            a.getBalance(),
-                            a.getAccountNumber(),
-                            a.getBranch(),
-                            a.getOpenDate());
+                    if (a instanceof ChequeAccount) {
+                        ChequeAccount ca = (ChequeAccount) a;
+                        out.printf("ACCOUNT|%s|%s|%.2f|%s|%s|%s|%s|%s%n",
+                                c.getCustomerId(),
+                                a.getClass().getSimpleName(),
+                                a.getBalance(),
+                                a.getAccountNumber(),
+                                a.getBranch(),
+                                a.getOpenDate(),
+                                ca.getEmployer(),
+                                ca.getEmployerAddress());
+                    } else {
+                        out.printf("ACCOUNT|%s|%s|%.2f|%s|%s|%s%n",
+                                c.getCustomerId(),
+                                a.getClass().getSimpleName(),
+                                a.getBalance(),
+                                a.getAccountNumber(),
+                                a.getBranch(),
+                                a.getOpenDate());
+                    }
                 }
             }
             System.out.println("Data saved successfully to " + filename);
@@ -142,7 +151,7 @@ public class Bank {
     /**
      * Load bank data from file
      * Format: CUSTOMER|customerId|firstName|lastName|address|password
-     *         ACCOUNT|customerId|accountType|balance|accountNumber|branch|openDate
+     *         ACCOUNT|customerId|accountType|balance|accountNumber|branch|openDate|employer|employerAddress
      */
     public static Bank loadFromFile(String filename) {
         Bank bank = new Bank("StudentBank");
@@ -159,7 +168,6 @@ public class Bank {
                 String[] parts = line.split("\\|");
 
                 if (parts[0].equals("CUSTOMER")) {
-                    // CUSTOMER|customerId|firstName|lastName|address|password
                     String customerId = parts[1];
                     String firstName = parts[2];
                     String lastName = parts.length > 3 ? parts[3] : "";
@@ -167,20 +175,20 @@ public class Bank {
                     String password = parts.length > 5 ? parts[5] : "1234";
 
                     bank.createCustomer(customerId, firstName, lastName, address, password);
-                    System.out.println("Loaded customer: " + customerId + " with password: " + password);
+                    System.out.println("Loaded customer: " + customerId);
 
                 } else if (parts[0].equals("ACCOUNT")) {
-                    // ACCOUNT|customerId|accountType|balance|accountNumber|branch|openDate
                     String customerId = parts[1];
-                    String accountType = parts[2].replace("Account", ""); // Remove "Account" suffix
+                    String accountType = parts[2].replace("Account", "");
                     double balance = Double.parseDouble(parts[3]);
                     String accountNumber = parts.length > 4 ? parts[4] : null;
                     String branch = parts.length > 5 ? parts[5] : "Main";
                     String openDate = parts.length > 6 ? parts[6] : LocalDate.now().toString();
+                    String employer = parts.length > 7 ? parts[7] : "Unknown";
+                    String employerAddress = parts.length > 8 ? parts[8] : "Unknown";
 
                     Customer customer = bank.getCustomer(customerId);
                     if (customer != null) {
-                        // Create account with saved account number
                         Account account = null;
                         switch (accountType.toUpperCase()) {
                             case "SAVINGS":
@@ -190,7 +198,7 @@ public class Bank {
                                 account = new InvestmentAccount(accountNumber, balance, branch, openDate);
                                 break;
                             case "CHEQUE":
-                                account = new ChequeAccount(accountNumber, balance, branch, openDate, "Unknown", "Unknown");
+                                account = new ChequeAccount(accountNumber, balance, branch, openDate, employer, employerAddress);
                                 break;
                         }
 

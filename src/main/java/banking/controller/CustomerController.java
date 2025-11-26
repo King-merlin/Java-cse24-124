@@ -1,23 +1,27 @@
 package banking.controller;
 
-import banking.model.*;
+import banking.MainApp;
+import banking.model.Bank;
+import banking.model.Customer;
+import banking.model.Account;
+import banking.model.SessionManager;
+
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
+import javafx.scene.layout.VBox;
 
 public class CustomerController {
+
     @FXML private TextArea txtArea;
-
+    private Bank bank = Bank.loadFromFile("BankData.txt");
     private Customer customer;
-    private Bank bank;
-    private static final String DATA_FILE = "BankData.txt";
 
-    public void setCustomerAndBank(Customer c, Bank b) {
-        this.customer = c;
-        this.bank = b;
-        txtArea.appendText("Welcome " + c.getName() + "!\n\n");
+    @FXML
+    public void initialize() {
+        customer = SessionManager.getCustomer();
+        txtArea.appendText("Welcome, " + customer.getName() + "!\n\n");
         listAccounts();
     }
 
@@ -28,22 +32,157 @@ public class CustomerController {
 
         if (customer.getAccounts().isEmpty()) {
             txtArea.appendText("No accounts found.\n");
+            txtArea.appendText("\nWould you like to open a new account?\n");
+            txtArea.appendText("Click 'Open New Account' button below.\n");
             return;
         }
 
         for (Account a : customer.getAccounts()) {
-            txtArea.appendText(String.format("Account: %s\nType: %s\nBalance: $%.2f\n\n",
-                    a.getAccountNumber(),
-                    a.getClass().getSimpleName().replace("Account", ""),
-                    a.getBalance()));
+            String accountType = a.getClass().getSimpleName().replace("Account", "");
+            txtArea.appendText(String.format("╔═══════════════════════════════════╗\n"));
+            txtArea.appendText(String.format("║ Account Number: %-16s ║\n", a.getAccountNumber()));
+            txtArea.appendText(String.format("║ Type: %-26s ║\n", accountType));
+            txtArea.appendText(String.format("║ Balance: $%-22.2f ║\n", a.getBalance()));
+            txtArea.appendText(String.format("╚═══════════════════════════════════╝\n\n"));
         }
     }
 
     @FXML
+    public void openNewAccount() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Open New Account");
+        dialog.setHeaderText("Add a new account to your profile");
+
+        ButtonType createButtonType = new ButtonType("Open Account", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        ComboBox<String> accountTypeCombo = new ComboBox<>();
+        accountTypeCombo.getItems().addAll("SAVINGS", "CHEQUE", "INVESTMENT");
+        accountTypeCombo.setValue("SAVINGS");
+
+        TextField depositField = new TextField();
+        depositField.setPromptText("Initial deposit");
+        depositField.setText("1000");
+
+        // Employer fields (for cheque accounts)
+        TextField employerField = new TextField();
+        employerField.setPromptText("Employer name");
+        TextField employerAddressField = new TextField();
+        employerAddressField.setPromptText("Employer address");
+
+        Label employerLabel = new Label("Employer:");
+        Label employerAddressLabel = new Label("Employer Address:");
+
+        // Initially hide employer fields
+        employerLabel.setVisible(false);
+        employerLabel.setManaged(false);
+        employerField.setVisible(false);
+        employerField.setManaged(false);
+        employerAddressLabel.setVisible(false);
+        employerAddressLabel.setManaged(false);
+        employerAddressField.setVisible(false);
+        employerAddressField.setManaged(false);
+
+        // Show/hide employer fields based on account type
+        accountTypeCombo.setOnAction(e -> {
+            boolean isCheque = accountTypeCombo.getValue().equals("CHEQUE");
+            employerLabel.setVisible(isCheque);
+            employerLabel.setManaged(isCheque);
+            employerField.setVisible(isCheque);
+            employerField.setManaged(isCheque);
+            employerAddressLabel.setVisible(isCheque);
+            employerAddressLabel.setManaged(isCheque);
+            employerAddressField.setVisible(isCheque);
+            employerAddressField.setManaged(isCheque);
+        });
+
+        Label infoLabel = new Label(
+                "Account Types:\n" +
+                        "• Savings: No withdrawals allowed, earns 0.05% monthly interest\n" +
+                        "• Cheque: Full withdrawals allowed, no interest earned\n" +
+                        "• Investment: Min $500 balance, earns 5% monthly interest"
+        );
+        infoLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #666;");
+        infoLabel.setWrapText(true);
+        infoLabel.setMaxWidth(300);
+
+        int row = 0;
+        grid.add(new Label("Account Type:"), 0, row);
+        grid.add(accountTypeCombo, 1, row++);
+        grid.add(new Label("Initial Deposit:"), 0, row);
+        grid.add(depositField, 1, row++);
+        grid.add(employerLabel, 0, row);
+        grid.add(employerField, 1, row++);
+        grid.add(employerAddressLabel, 0, row);
+        grid.add(employerAddressField, 1, row++);
+        grid.add(infoLabel, 0, row, 2, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.showAndWait().ifPresent(response -> {
+            if (response == createButtonType) {
+                try {
+                    String accountType = accountTypeCombo.getValue();
+                    double initialDeposit = Double.parseDouble(depositField.getText().trim());
+
+                    if (initialDeposit <= 0) {
+                        showAlert("Error", "Initial deposit must be greater than zero.");
+                        return;
+                    }
+
+                    if (accountType.equals("INVESTMENT") && initialDeposit < 500) {
+                        showAlert("Error", "Investment accounts require a minimum deposit of $500.");
+                        return;
+                    }
+
+                    if (accountType.equals("CHEQUE")) {
+                        String employer = employerField.getText().trim();
+                        String employerAddress = employerAddressField.getText().trim();
+
+                        if (employer.isEmpty() || employerAddress.isEmpty()) {
+                            showAlert("Error", "Cheque accounts require employer information.");
+                            return;
+                        }
+
+                        bank.openAccount(customer.getCustomerId(), accountType, initialDeposit, employer, employerAddress);
+                    } else {
+                        bank.openAccount(customer.getCustomerId(), accountType, initialDeposit);
+                    }
+
+                    bank.saveToFile("BankData.txt");
+
+                    showAlert("Success",
+                            String.format("New %s account opened!\nInitial deposit: $%.2f",
+                                    accountType, initialDeposit));
+
+                    customer = bank.getCustomer(customer.getCustomerId());
+                    SessionManager.setCustomer(customer);
+                    listAccounts();
+
+                } catch (NumberFormatException e) {
+                    showAlert("Error", "Please enter a valid deposit amount.");
+                } catch (Exception e) {
+                    showAlert("Error", "Failed to open account: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    @FXML
     public void deposit() {
+        if (customer.getAccounts().isEmpty()) {
+            showAlert("No Accounts", "You don't have any accounts yet. Please open an account first.");
+            return;
+        }
+
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Deposit Money");
-        dialog.setHeaderText("Enter deposit details");
+        dialog.setHeaderText("Select account and enter deposit amount");
 
         ButtonType depositButtonType = new ButtonType("Deposit", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(depositButtonType, ButtonType.CANCEL);
@@ -55,48 +194,60 @@ public class CustomerController {
 
         ComboBox<String> accountCombo = new ComboBox<>();
         for (Account a : customer.getAccounts()) {
-            accountCombo.getItems().add(a.getAccountNumber() + " (Balance: $" +
-                    String.format("%.2f", a.getBalance()) + ")");
+            String accountType = a.getClass().getSimpleName().replace("Account", "");
+            accountCombo.getItems().add(String.format("%s (%s) - $%.2f",
+                    a.getAccountNumber(), accountType, a.getBalance()));
         }
-        if (!accountCombo.getItems().isEmpty()) {
-            accountCombo.getSelectionModel().selectFirst();
-        }
+        accountCombo.getSelectionModel().selectFirst();
 
         TextField amountField = new TextField();
         amountField.setPromptText("e.g., 500.00");
 
         grid.add(new Label("Select Account:"), 0, 0);
         grid.add(accountCombo, 1, 0);
-        grid.add(new Label("Amount:"), 0, 1);
+        grid.add(new Label("Amount to Deposit:"), 0, 1);
         grid.add(amountField, 1, 1);
 
         dialog.getDialogPane().setContent(grid);
+        amountField.requestFocus();
 
         dialog.showAndWait().ifPresent(response -> {
             if (response == depositButtonType) {
                 try {
                     String selected = accountCombo.getValue();
                     if (selected == null) {
-                        txtArea.appendText("Error: Please select an account.\n");
+                        showAlert("Error", "Please select an account.");
                         return;
                     }
 
                     String accNum = selected.split(" ")[0];
-                    Account a = findAccount(accNum);
+                    Account account = findAccount(accNum);
 
-                    if (a == null) {
-                        txtArea.appendText("Error: Account not found.\n");
+                    if (account == null) {
+                        showAlert("Error", "Account not found.");
                         return;
                     }
 
-                    double amt = Double.parseDouble(amountField.getText().trim());
-                    a.deposit(amt);
-                    txtArea.appendText(String.format("Successfully deposited $%.2f to %s\nNew balance: $%.2f\n\n",
-                            amt, accNum, a.getBalance()));
-                    bank.saveToFile(DATA_FILE);
+                    double amount = Double.parseDouble(amountField.getText().trim());
+
+                    if (amount <= 0) {
+                        showAlert("Error", "Amount must be greater than zero.");
+                        return;
+                    }
+
+                    account.deposit(amount);
+                    bank.saveToFile("BankData.txt");
+
+                    showAlert("Success",
+                            String.format("Successfully deposited $%.2f\nNew balance: $%.2f",
+                                    amount, account.getBalance()));
+
                     listAccounts();
+
                 } catch (NumberFormatException e) {
-                    txtArea.appendText("Error: Invalid amount.\n");
+                    showAlert("Error", "Please enter a valid amount.");
+                } catch (Exception e) {
+                    showAlert("Error", "Deposit failed: " + e.getMessage());
                 }
             }
         });
@@ -104,84 +255,132 @@ public class CustomerController {
 
     @FXML
     public void withdraw() {
+        if (customer.getAccounts().isEmpty()) {
+            showAlert("No Accounts", "You don't have any accounts yet. Please open an account first.");
+            return;
+        }
+
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Withdraw Money");
-        dialog.setHeaderText("Enter withdrawal details");
+        dialog.setHeaderText("Select account and enter withdrawal amount");
 
         ButtonType withdrawButtonType = new ButtonType("Withdraw", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(withdrawButtonType, ButtonType.CANCEL);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(20));
 
         ComboBox<String> accountCombo = new ComboBox<>();
         for (Account a : customer.getAccounts()) {
-            accountCombo.getItems().add(a.getAccountNumber() + " (" +
-                    a.getClass().getSimpleName().replace("Account", "") +
-                    ") - $" + String.format("%.2f", a.getBalance()));
+            String accountType = a.getClass().getSimpleName().replace("Account", "");
+            accountCombo.getItems().add(String.format("%s (%s) - Balance: $%.2f",
+                    a.getAccountNumber(), accountType, a.getBalance()));
         }
-        if (!accountCombo.getItems().isEmpty()) {
-            accountCombo.getSelectionModel().selectFirst();
-        }
+        accountCombo.getSelectionModel().selectFirst();
+        accountCombo.setPrefWidth(350);
 
         TextField amountField = new TextField();
         amountField.setPromptText("e.g., 200.00");
 
+        Label infoLabel = new Label(
+                "⚠ Withdrawal Rules:\n" +
+                        "• Savings accounts: NO withdrawals allowed\n" +
+                        "• Cheque accounts: Full withdrawal allowed\n" +
+                        "• Investment accounts: Must keep minimum $500 balance"
+        );
+        infoLabel.setStyle("-fx-background-color: #fff3cd; -fx-padding: 10; " +
+                "-fx-border-color: #ffc107; -fx-border-radius: 5; " +
+                "-fx-background-radius: 5; -fx-font-size: 11px;");
+        infoLabel.setWrapText(true);
+        infoLabel.setMaxWidth(350);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+
         grid.add(new Label("Select Account:"), 0, 0);
         grid.add(accountCombo, 1, 0);
-        grid.add(new Label("Amount:"), 0, 1);
+        grid.add(new Label("Amount to Withdraw:"), 0, 1);
         grid.add(amountField, 1, 1);
 
-        dialog.getDialogPane().setContent(grid);
+        vbox.getChildren().addAll(grid, infoLabel);
+        dialog.getDialogPane().setContent(vbox);
+        amountField.requestFocus();
 
         dialog.showAndWait().ifPresent(response -> {
             if (response == withdrawButtonType) {
                 try {
                     String selected = accountCombo.getValue();
                     if (selected == null) {
-                        txtArea.appendText("Error: Please select an account.\n");
+                        showAlert("Error", "Please select an account.");
                         return;
                     }
 
                     String accNum = selected.split(" ")[0];
-                    Account a = findAccount(accNum);
+                    Account account = findAccount(accNum);
 
-                    if (a == null) {
-                        txtArea.appendText("Error: Account not found.\n");
+                    if (account == null) {
+                        showAlert("Error", "Account not found.");
                         return;
                     }
 
-                    double amt = Double.parseDouble(amountField.getText().trim());
-                    boolean success = a.withdraw(amt);
+                    double amount = Double.parseDouble(amountField.getText().trim());
+
+                    if (amount <= 0) {
+                        showAlert("Error", "Amount must be greater than zero.");
+                        return;
+                    }
+
+                    boolean success = account.withdraw(amount);
 
                     if (success) {
-                        txtArea.appendText(String.format("Successfully withdrew $%.2f from %s\nNew balance: $%.2f\n\n",
-                                amt, accNum, a.getBalance()));
-                        bank.saveToFile(DATA_FILE);
+                        bank.saveToFile("BankData.txt");
+                        showAlert("Success",
+                                String.format("Successfully withdrew $%.2f\nNew balance: $%.2f",
+                                        amount, account.getBalance()));
                         listAccounts();
                     } else {
-                        txtArea.appendText("Withdrawal failed. Check account type and balance.\n");
+                        String accountType = account.getClass().getSimpleName().replace("Account", "");
+                        String reason = "";
+
+                        if (accountType.equals("Savings")) {
+                            reason = "Savings accounts do not allow withdrawals.";
+                        } else if (accountType.equals("Investment")) {
+                            reason = "Investment accounts must maintain a minimum balance of $500.";
+                        } else {
+                            reason = "Insufficient funds in your account.";
+                        }
+
+                        showAlert("Withdrawal Failed", reason);
                     }
+
                 } catch (NumberFormatException e) {
-                    txtArea.appendText("Error: Invalid amount.\n");
+                    showAlert("Error", "Please enter a valid amount.");
+                } catch (Exception e) {
+                    showAlert("Error", "Withdrawal failed: " + e.getMessage());
                 }
             }
         });
     }
 
-    private Account findAccount(String acc) {
+    private Account findAccount(String accNum) {
         for (Account a : customer.getAccounts()) {
-            if (a.getAccountNumber().equals(acc)) return a;
+            if (a.getAccountNumber().equals(accNum)) return a;
         }
         return null;
     }
 
     @FXML
-    public void saveAndExit() {
-        bank.saveToFile(DATA_FILE);
-        Stage stage = (Stage) txtArea.getScene().getWindow();
-        stage.close();
+    public void logout() {
+        SessionManager.logout();
+        MainApp.loadScreen("/banking/view/WelcomeScreen.fxml");
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

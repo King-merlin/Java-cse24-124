@@ -16,16 +16,13 @@ public class WelcomeController {
 
     @FXML
     public void handleCustomerLogin() {
-        // Create custom dialog
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Customer Login");
         dialog.setHeaderText("Enter your credentials");
 
-        // Set button types
         ButtonType loginButtonType = new ButtonType("Login", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
-        // Create the form
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -42,11 +39,8 @@ public class WelcomeController {
         grid.add(passwordField, 1, 1);
 
         dialog.getDialogPane().setContent(grid);
-
-        // Request focus on customer ID field
         customerIdField.requestFocus();
 
-        // Show dialog and process result
         dialog.showAndWait().ifPresent(response -> {
             if (response == loginButtonType) {
                 String customerId = customerIdField.getText().trim();
@@ -70,16 +64,13 @@ public class WelcomeController {
 
     @FXML
     public void handleAdminLogin() {
-        // Create custom dialog
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Admin Login");
         dialog.setHeaderText("Enter admin credentials");
 
-        // Set button types
         ButtonType loginButtonType = new ButtonType("Login", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
-        // Create the form
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -96,17 +87,15 @@ public class WelcomeController {
         grid.add(passwordField, 1, 1);
 
         dialog.getDialogPane().setContent(grid);
-
-        // Request focus on username field
         usernameField.requestFocus();
 
-        // Show dialog and process result
         dialog.showAndWait().ifPresent(response -> {
             if (response == loginButtonType) {
                 String username = usernameField.getText().trim();
                 String password = passwordField.getText().trim();
 
-                if (username.equals("admin") && password.equals("admin123")) {
+                // Use the AdminDashboardController's validation method
+                if (AdminDashboardController.validateAdmin(username, password)) {
                     SessionManager.setAdmin(true);
                     MainApp.loadScreen("/banking/view/AdminDashboard.fxml");
                 } else {
@@ -118,16 +107,13 @@ public class WelcomeController {
 
     @FXML
     public void handleOpenAccount() {
-        // Create custom dialog with all fields
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Open New Account");
         dialog.setHeaderText("Enter customer information");
 
-        // Set button types
         ButtonType createButtonType = new ButtonType("Create Account", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
 
-        // Create the form
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -141,18 +127,49 @@ public class WelcomeController {
         lastNameField.setPromptText("Last name");
         TextField addressField = new TextField();
         addressField.setPromptText("Address");
-        addressField.setText("Gaborone"); // Default value
+        addressField.setText("Gaborone");
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Create password");
 
-        // Account type selection
         ComboBox<String> accountTypeCombo = new ComboBox<>();
         accountTypeCombo.getItems().addAll("SAVINGS", "CHEQUE", "INVESTMENT");
-        accountTypeCombo.setValue("SAVINGS"); // Default
+        accountTypeCombo.setValue("SAVINGS");
 
         TextField depositField = new TextField();
         depositField.setPromptText("Initial deposit amount");
-        depositField.setText("1000"); // Default value
+        depositField.setText("1000");
+
+        // Employer fields for CHEQUE accounts
+        TextField employerField = new TextField();
+        employerField.setPromptText("Employer name");
+        TextField employerAddressField = new TextField();
+        employerAddressField.setPromptText("Employer address");
+
+        Label employerLabel = new Label("Employer:");
+        Label employerAddressLabel = new Label("Employer Address:");
+
+        // Initially hide employer fields
+        employerLabel.setVisible(false);
+        employerLabel.setManaged(false);
+        employerField.setVisible(false);
+        employerField.setManaged(false);
+        employerAddressLabel.setVisible(false);
+        employerAddressLabel.setManaged(false);
+        employerAddressField.setVisible(false);
+        employerAddressField.setManaged(false);
+
+        // Show/hide employer fields based on account type
+        accountTypeCombo.setOnAction(e -> {
+            boolean isCheque = accountTypeCombo.getValue().equals("CHEQUE");
+            employerLabel.setVisible(isCheque);
+            employerLabel.setManaged(isCheque);
+            employerField.setVisible(isCheque);
+            employerField.setManaged(isCheque);
+            employerAddressLabel.setVisible(isCheque);
+            employerAddressLabel.setManaged(isCheque);
+            employerAddressField.setVisible(isCheque);
+            employerAddressField.setManaged(isCheque);
+        });
 
         Label infoLabel = new Label(
                 "Account Types:\n" +
@@ -163,7 +180,6 @@ public class WelcomeController {
         infoLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #666;");
         infoLabel.setWrapText(true);
 
-        // Add all fields to grid
         int row = 0;
         grid.add(new Label("Customer ID:"), 0, row);
         grid.add(customerIdField, 1, row++);
@@ -186,14 +202,17 @@ public class WelcomeController {
         grid.add(new Label("Initial Deposit:"), 0, row);
         grid.add(depositField, 1, row++);
 
+        grid.add(employerLabel, 0, row);
+        grid.add(employerField, 1, row++);
+
+        grid.add(employerAddressLabel, 0, row);
+        grid.add(employerAddressField, 1, row++);
+
         grid.add(infoLabel, 0, row, 2, 1);
 
         dialog.getDialogPane().setContent(grid);
-
-        // Request focus on customer ID field
         customerIdField.requestFocus();
 
-        // Show dialog and process result
         dialog.showAndWait().ifPresent(response -> {
             if (response == createButtonType) {
                 try {
@@ -205,14 +224,12 @@ public class WelcomeController {
                     String accountType = accountTypeCombo.getValue();
                     String depositText = depositField.getText().trim();
 
-                    // Validation
                     if (customerId.isEmpty() || firstName.isEmpty() || lastName.isEmpty() ||
                             address.isEmpty() || password.isEmpty() || depositText.isEmpty()) {
                         showAlert("Error", "Please fill in all fields.");
                         return;
                     }
 
-                    // Check if customer already exists
                     if (bank.getCustomer(customerId) != null) {
                         showAlert("Error", "Customer ID already exists. Please choose a different ID.");
                         return;
@@ -226,7 +243,6 @@ public class WelcomeController {
                             return;
                         }
 
-                        // Check minimum for investment accounts
                         if (accountType.equals("INVESTMENT") && initialDeposit < 500) {
                             showAlert("Error", "Investment accounts require a minimum initial deposit of $500.");
                             return;
@@ -236,9 +252,23 @@ public class WelcomeController {
                         return;
                     }
 
-                    // Create customer and account
-                    Customer newCustomer = bank.createCustomer(customerId, firstName, lastName, address, password);
-                    bank.openAccount(customerId, accountType, initialDeposit);
+                    // Handle CHEQUE account employer info
+                    if (accountType.equals("CHEQUE")) {
+                        String employer = employerField.getText().trim();
+                        String employerAddress = employerAddressField.getText().trim();
+
+                        if (employer.isEmpty() || employerAddress.isEmpty()) {
+                            showAlert("Error", "Cheque accounts require employer information.");
+                            return;
+                        }
+
+                        bank.createCustomer(customerId, firstName, lastName, address, password);
+                        bank.openAccount(customerId, accountType, initialDeposit, employer, employerAddress);
+                    } else {
+                        bank.createCustomer(customerId, firstName, lastName, address, password);
+                        bank.openAccount(customerId, accountType, initialDeposit);
+                    }
+
                     bank.saveToFile(DATA_FILE);
 
                     showAlert("Success",

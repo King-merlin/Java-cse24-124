@@ -1,5 +1,5 @@
 CUSTOMER|cust2|david|williams|Gaboroneploy4455|customer12
-ACCOUNT|cust2|InvestmentAccount|1250.00|B34197201|Main|2025-11-17
-ACCOUNT|cust2|SavingsAccount|1000.00|B57118033|Main|2025-11-17
+ACCOUNT|cust2|InvestmentAccount|1312.50|B34197201|Main|2025-11-17
+ACCOUNT|cust2|SavingsAccount|1000.50|B57118033|Main|2025-11-17
 CUSTOMER|customer|karabo|leetile|Gaboroneplot555|customer123
-ACCOUNT|customer|SavingsAccount|1000.50|B10927339|Main|2025-11-17
+ACCOUNT|customer|SavingsAccount|1001.00|B10927339|Main|2025-11-17

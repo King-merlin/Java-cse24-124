@@ -1,5 +1,6 @@
 package banking.controller;
 
+import banking.MainApp;
 import banking.model.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -23,10 +24,17 @@ public class LoginController {
     public void handleCustomerLogin(ActionEvent e) {
         String id = txtUserId.getText().trim();
         String pw = txtPassword.getText().trim();
+
+        if (id.isEmpty() || pw.isEmpty()) {
+            lblStatus.setText("Please enter both ID and password.");
+            return;
+        }
+
         Customer c = bank.getCustomer(id);
         if (c != null && c.checkPassword(pw)) {
             lblStatus.setText("Login successful as Customer!");
-            openCustomerView(c);
+            SessionManager.setCustomer(c);
+            MainApp.loadScreen("/banking/view/CustomerDashboard.fxml");
         } else {
             lblStatus.setText("Invalid customer credentials.");
         }
@@ -34,9 +42,18 @@ public class LoginController {
 
     @FXML
     public void handleStaffLogin(ActionEvent e) {
-        if (txtUserId.getText().equals("admin") && txtPassword.getText().equals("admin123")) {
+        String username = txtUserId.getText().trim();
+        String password = txtPassword.getText().trim();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            lblStatus.setText("Please enter both username and password.");
+            return;
+        }
+
+        if (username.equals("admin") && password.equals("admin123")) {
             lblStatus.setText("Staff login successful.");
-            openStaffView();
+            SessionManager.setAdmin(true);
+            MainApp.loadScreen("/banking/view/AdminDashboard.fxml");
         } else {
             lblStatus.setText("Invalid staff credentials.");
         }
@@ -49,37 +66,18 @@ public class LoginController {
             lblStatus.setText("Please enter a new customer ID first.");
             return;
         }
+
+        // Check if customer already exists
+        if (bank.getCustomer(id) != null) {
+            lblStatus.setText("Customer ID already exists. Please use a different ID.");
+            return;
+        }
+
+        // Create new customer with default values
         Customer newCust = bank.createCustomer(id, "New", "Customer", "Gaborone", "1234");
         bank.openAccount(id, "SAVINGS", 1000);
-        lblStatus.setText("Created new customer with default savings account!");
         bank.saveToFile(DATA_FILE);
-    }
 
-    private void openCustomerView(Customer c) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/banking/view/CustomerView.fxml"));
-            Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load()));
-            CustomerController controller = loader.getController();
-            controller.setCustomerAndBank(c, bank);
-            stage.setTitle("Customer Dashboard - " + c.getName());
-            stage.show();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void openStaffView() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/banking/view/StaffView.fxml"));
-            Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load()));
-            StaffController controller = loader.getController();
-            controller.setBank(bank);
-            stage.setTitle("Staff Dashboard");
-            stage.show();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        lblStatus.setText("Created new customer with default savings account! Password: 1234");
     }
 }

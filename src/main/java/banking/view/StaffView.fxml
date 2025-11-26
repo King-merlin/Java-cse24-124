@@ -1,15 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="banking.controller.StaffController"
-      alignment="CENTER" spacing="10" style="-fx-padding: 20px;">
-    <Label text="Staff Dashboard" style="-fx-font-size: 20px;" />
-    <TextArea fx:id="txtArea" prefHeight="300" wrapText="true" editable="false"/>
-    <HBox spacing="10">
-        <Button text="List Customers" onAction="#listCustomers"/>
-        <Button text="Calculate Interest" onAction="#calculateInterest"/>
-        <Button text="Save & Exit" onAction="#saveAndExit"/>
-    </HBox>
-</VBox>
+<!-- Note: This is a legacy file referenced by LoginController -->
+<!-- Consider updating LoginController to use AdminDashboard.fxml instead -->
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="banking.controller.StaffController"
+            prefHeight="600.0" prefWidth="800.0">
+
+    <top>
+        <VBox style="-fx-background-color: #e74c3c; -fx-padding: 20;">
+            <Label text="Staff Dashboard" textFill="white">
+                <font>
+                    <Font name="System Bold" size="24.0" />
+                </font>
+            </Label>
+        </VBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.7">
+            <AnchorPane>
+                <TextArea fx:id="txtArea" editable="false" wrapText="true"
+                          style="-fx-font-family: 'Courier New';"
+                          AnchorPane.topAnchor="10.0" AnchorPane.bottomAnchor="10.0"
+                          AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
+            </AnchorPane>
+
+            <AnchorPane style="-fx-background-color: #ecf0f1;">
+                <VBox spacing="10.0" AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="10.0"
+                      AnchorPane.rightAnchor="10.0">
+                    <Button text="List Customers" onAction="#listCustomers" prefWidth="150.0"
+                            style="-fx-background-color: #3498db; -fx-text-fill: white;"/>
+                    <Button text="Calculate Interest" onAction="#calculateInterest" prefWidth="150.0"
+                            style="-fx-background-color: #27ae60; -fx-text-fill: white;"/>
+                    <Button text="Save & Exit" onAction="#saveAndExit" prefWidth="150.0"
+                            style="-fx-background-color: #95a5a6; -fx-text-fill: white;"/>
+                </VBox>
+            </AnchorPane>
+        </SplitPane>
+    </center>
+</BorderPane>
